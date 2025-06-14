@@ -1,13 +1,15 @@
 #!/bin/bash
 set -e
 
+# wayland environment setup
 export XDG_SESSION_TYPE=wayland
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 mkdir -p "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
 
+# start dwl with dbus session
 exec dbus-run-session -- sh -c '
     export DBUS_SESSION_BUS_ADDRESS
     export WLR_RENDERER=immediate
-    dwl -s /home/mellen/.startup.sh
+    dwl -s ~/startup.sh
 '

@@ -1,32 +1,30 @@
 #!/bin/bash
-# Initialize D-Bus environment
-if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
-    eval "$(dbus-launch --sh-syntax --exit-with-session)"
-    export DBUS_SESSION_BUS_ADDRESS
-fi
 
-# Set display mode
+# dbus initialization
+[ -z "$DBUS_SESSION_BUS_ADDRESS" ] && eval "$(dbus-launch --sh-syntax --exit-with-session)"
+
+# display configuration
 wlr-randr --output DP-3 --mode 1920x1080@498.932007Hz || {
-    echo "Falling back to preferred mode" >&2
+    echo "falling back to preferred mode" >&2
     wlr-randr --output DP-3 --preferred
 }
 
-# Start PipeWire with proper D-Bus integration
+# audio pipeline
 gentoo-pipewire-launcher start || {
-    echo "PipeWire start failed - attempting direct start" >&2
+    echo "pipewire start failed - direct start" >&2
     pipewire &
     pipewire-pulse &
     wireplumber &
 }
 
-# Start D-Bus-activated services
+# background services
 /usr/libexec/dconf-service &
 /usr/libexec/xdg-permission-store &
 
-# Ensure Spotify can access D-Bus
-export XDG_CURRENT_DESKTOP=sway  # Many apps expect this
+# wayland compatibility
+export XDG_CURRENT_DESKTOP=sway
 export QT_QPA_PLATFORM=wayland
 export MOZ_ENABLE_WAYLAND=1
 
-# Keep session alive
+# session persistence
 exec sleep infinity

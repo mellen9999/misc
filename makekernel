@@ -1,0 +1,40 @@
+#!/bin/bash
+
+cd /usr/src/linux || exit 1
+srcdir=$(basename "$(readlink -f .)")
+yes "" | make LSMOD=/home/mellen/.config/modprobed.db localmodconfig LLVM=1 -j16
+yes "" | make olddefconfig
+make -j16
+make modules_install -j16
+make install -j16
+
+latest=$(make kernelrelease)
+dracut --force /boot/initramfs-"$latest".img --hostonly --kver "$latest"
+
+cp -v /boot/vmlinuz /boot/vmlinuz-"$latest"
+
+cd /usr/src || exit 1
+for d in linux-*; do
+  [[ "$d" == "$srcdir" ]] && continue
+  echo removing "$d"
+  rm -rf "$d"
+done
+ln -snf "$srcdir" linux
+
+cd /lib/modules || exit 1
+for m in *; do
+  [[ "$m" == "$latest" ]] && continue
+  echo removing modules "$m"
+  rm -rf "$m"
+done
+
+cd /boot || exit 1
+for f in vmlinuz-* initramfs-* System.map-* config-*; do
+  [[ "$f" == *"$latest"* ]] && continue
+  echo removing boot file "$f"
+  rm -f "$f"
+done
+
+echo regenerating grub config
+grub-mkconfig -o /boot/grub/grub.cfg
+echo '---done---'

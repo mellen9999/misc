@@ -9,7 +9,7 @@ yes "" | make olddefconfig
 make -j16
 make modules_install -j16
 make install -j16
-dracut --force /boot/initramfs-"$latest".img --hostonly --kver "$latest"
+dracut --force /boot/initramfs-"$latest".img --kver "$latest"
 cp -v /boot/vmlinuz /boot/vmlinuz-"$latest"
 
 cd /usr/src

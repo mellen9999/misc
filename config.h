@@ -8,11 +8,11 @@ static const int sloppyfocus               = 1;  /* focus follows mouse */
 static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
 static const unsigned int borderpx         = 4;  /* border pixel of windows */
 static const float rootcolor[]             = COLOR(0x000000ff);
-static const float bordercolor[]           = COLOR(0x5f5f5fff);
+static const float bordercolor[]           = COLOR(0x808080ff);
 static const float focuscolor[]            = COLOR(0xff8700ff);
-static const float urgentcolor[]           = COLOR(0xd7ff0ff);
+static const float urgentcolor[]           = COLOR(0xff0000ff);
 /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
-static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You can also use glsl colors */
+static const float fullscreen_bg[]         = {0.0f, 0.0f, 0.0f, 1.0f}; /* You can also use glsl colors */
 
 /* tagging - TAGCOUNT must be no greater than 31 */
 #define TAGCOUNT (9)
@@ -48,7 +48,7 @@ static const MonitorRule monrules[] = {
 	{ "eDP-1",    0.5f,  1,      2,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
 	*/
 	/* defaults */
-	{ NULL,       0.65f, 1,      1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
+	{ NULL,       0.6f, 1,      1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
 };
 
 /* keyboard */
@@ -60,8 +60,8 @@ static const struct xkb_rule_names xkb_rules = {
 	.options = NULL,
 };
 
-static const int repeat_rate = 50;
-static const int repeat_delay = 250;
+static const int repeat_rate = 25;
+static const int repeat_delay = 600;
 
 /* Trackpad */
 static const int tap_to_click = 1;
@@ -120,19 +120,19 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 
 /* commands */
 static const char *termcmd[] = { "foot", NULL };
-static const char *menucmd[] = { "wmenu-run", "-f", "terminus bold 10", "-N", "000000", "-n", "ffffff", "-S", "ffffff", "-s", "000000", NULL };
-static const char *playerctl_pause[] = { "playerctl", "play-pause", NULL };
-static const char *playerctl_next[] = { "playerctl", "next", NULL };
-static const char *playerctl_volup[] = { "playerctl", "volume", "0.05+", NULL };
-static const char *playerctl_voldown[] = { "playerctl", "volume", "0.05-", NULL };
+static const char *menucmd[] = { "wmenu-run", NULL };
+static const char *playerctlpause[] = { "playerctl", "play-pause", NULL };
+static const char *playerctlnext[] = { "playerctl", "next", NULL };
+static const char *playerctlvolup[] = { "playerctl", "volume", "0.05+", NULL };
+static const char *playerctlvoldown[] = { "playerctl", "volume", "0.05-", NULL };
 
 static const Key keys[] = {
-    /* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
-    /* modifier                  key                 function        argument */
-    { MODKEY,                    XKB_KEY_o,          spawn,          {.v = playerctl_volup} },
-    { MODKEY,                    XKB_KEY_u,          spawn,          {.v = playerctl_voldown} },
-    { MODKEY,                    XKB_KEY_y,          spawn,          {.v = playerctl_next} },
-    { MODKEY,                    XKB_KEY_n,          spawn,          {.v = playerctl_pause} },
+	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
+	/* modifier                  key                 function        argument */
+	{ MODKEY,                    XKB_KEY_o,          spawn,          {.v = playerctlvolup} },
+	{ MODKEY,                    XKB_KEY_u,          spawn,          {.v = playerctlvoldown} },
+	{ MODKEY,                    XKB_KEY_y,          spawn,          {.v = playerctlnext} },
+	{ MODKEY,                    XKB_KEY_n,          spawn,          {.v = playerctlpause} },
 	{ MODKEY,                    XKB_KEY_p,          spawn,          {.v = menucmd} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,     spawn,          {.v = termcmd} },
 	{ MODKEY,                    XKB_KEY_j,          focusstack,     {.i = +1} },

@@ -120,7 +120,7 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 
 /* commands */
 static const char *termcmd[] = { "foot", NULL };
-static const char *menucmd[] = { "wmenu-run", NULL };
+static const char *menucmd[] = { "wmenu-run", "-f", "Terminus Bold 10", "-N", "000000", "-n", "ffffff", "-S", "ffffff", "-s", "000000", NULL };
 static const char *playerctlpause[] = { "playerctl", "play-pause", NULL };
 static const char *playerctlnext[] = { "playerctl", "next", NULL };
 static const char *playerctlvolup[] = { "playerctl", "volume", "0.05+", NULL };

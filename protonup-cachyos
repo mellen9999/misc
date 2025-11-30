@@ -15,7 +15,9 @@ INSTALL_DIR=""
 [[ -z "$INSTALL_DIR" ]] && INSTALL_DIR="$STEAM_DIR"; mkdir -p "$INSTALL_DIR"
 
 FLAGS=$(grep -m1 '^flags' /proc/cpuinfo || true)
-if echo "$FLAGS" | grep -qw avx2 && grep -qw bmi1 <<<"$FLAGS" && grep -qw bmi2 <<<"$FLAGS" && grep -qw fma <<<"$FLAGS"; then
+if echo "$FLAGS" | grep -qw avx512f; then
+    ARCH="x86_64_v4"
+elif echo "$FLAGS" | grep -qw avx2 && grep -qw bmi1 <<<"$FLAGS" && grep -qw bmi2 <<<"$FLAGS" && grep -qw fma <<<"$FLAGS"; then
     ARCH="x86_64_v3"
 else
     ARCH="x86_64"
@@ -54,4 +56,7 @@ find "$INSTALL_DIR" -maxdepth 1 -type d -name "proton-cachyos-*" ! -path "$INSTA
 
 echo "[✓] Installed: $INSTALL_NAME"
 echo "[✓] Done. Restart Steam to use the new version."
+echo ""
+echo "=== Release Notes ($TAG) ==="
+echo "$ASSET_JSON" | sed -n 's/.*"body": *"\(.*\)".*/\1/p' | sed 's/\\r\\n/\n/g; s/\\n/\n/g'
 

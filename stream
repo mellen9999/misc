@@ -1,0 +1,19 @@
+#!/bin/bash
+# 120fps Twitch streamer - Ctrl+C to stop
+trap 'kill $PID 2>/dev/null; wait $PID 2>/dev/null; exit' INT TERM HUP EXIT
+
+KEY_FILE=~/.config/stream/twitch_key
+if [[ ! -f "$KEY_FILE" ]]; then
+    echo "Error: No stream key found at $KEY_FILE"
+    exit 1
+fi
+
+STREAM_KEY=$(cat "$KEY_FILE")
+RTMP_URL="rtmp://live.twitch.tv/app/${STREAM_KEY}"
+
+echo "Starting 120fps stream to Twitch..."
+echo "Ctrl+C to stop"
+
+gpu-screen-recorder -w screen -f 120 -k h264 -bm cbr -q 6000 -a default_output -ab 320 -cursor yes -c flv -o "$RTMP_URL" &
+PID=$!
+wait $PID

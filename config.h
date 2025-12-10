@@ -7,7 +7,9 @@
 static const int sloppyfocus               = 1;  /* focus follows mouse */
 static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
 static const unsigned int borderpx         = 4;  /* border pixel of windows */
-static const int showbar                   = 1; /* 0 means no bar */
+static const unsigned int systrayspacing   = 2;  /* systray spacing */
+static const int showsystray               = 1;  /* 0 means no systray */
+static const int showbar                   = 1;  /* 0 means no bar */
 static const int topbar                    = 1; /* 0 means bottom bar */
 static const char *fonts[]                 = {"terminus:size=10:style=bold"};
 static const float rootcolor[]             = COLOR(0x000000ff);
@@ -127,6 +129,7 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 /* commands */
 static const char *termcmd[] = { "foot", NULL };
 static const char *menucmd[] = { "wmenu-run", "-f", "Terminus Bold 10", "-N", "000000", "-n", "ffffff", "-S", "ffffff", "-s", "000000", NULL };
+static const char *dmenucmd[] = { "wmenu", "-f", "Terminus Bold 10", "-N", "000000", "-n", "ffffff", "-S", "ffffff", "-s", "000000", NULL };
 static const char *playerctlpause[] = { "playerctl", "play-pause", NULL };
 static const char *playerctlnext[] = { "playerctl", "next", NULL };
 static const char *playerctlvolup[] = { "playerctl", "volume", "0.05+", NULL };
@@ -196,4 +199,6 @@ static const Button buttons[] = {
 	{ ClkTagBar,   0,      BTN_RIGHT,  toggleview,     {0} },
 	{ ClkTagBar,   MODKEY, BTN_LEFT,   tag,            {0} },
 	{ ClkTagBar,   MODKEY, BTN_RIGHT,  toggletag,      {0} },
+	{ ClkTray,     0,      BTN_LEFT,   trayactivate,   {0} },
+	{ ClkTray,     0,      BTN_RIGHT,  traymenu,       {0} },
 };

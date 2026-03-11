@@ -1,0 +1,24 @@
+#!/bin/bash
+# media-ctl: unified media control via playerctl
+# tries local D-Bus first, falls back to remote machine over SSH
+# set MEDIA_REMOTE to the IP/hostname of your other machine
+REMOTE="${MEDIA_REMOTE:-}"
+
+ctl_args() {
+  case "$1" in
+    play-pause) echo play-pause ;;
+    next)       echo next ;;
+    previous)   echo previous ;;
+    vol-up)     echo 'volume 0.05+' ;;
+    vol-down)   echo 'volume 0.05-' ;;
+  esac
+}
+
+if playerctl status &>/dev/null; then
+  playerctl $(ctl_args "$1")
+elif [[ -n "$REMOTE" ]]; then
+  ssh -o ConnectTimeout=1 "$REMOTE" "playerctl $(ctl_args "$1")"
+else
+  echo "no player found (set MEDIA_REMOTE for SSH fallback)" >&2
+  exit 1
+fi

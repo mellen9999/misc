@@ -7,15 +7,21 @@
 static const int sloppyfocus               = 1;  /* focus follows mouse */
 static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
 static const unsigned int borderpx         = 4;  /* border pixel of windows */
+static const int showbar                   = 1; /* 0 means no bar */
+static const int topbar                    = 1; /* 0 means bottom bar */
+static const char *fonts[]                 = {"Terminus:bold:size=10"};
 static const float rootcolor[]             = COLOR(0x000000ff);
-static const float bordercolor[]           = COLOR(0x5f5f5fff);
-static const float focuscolor[]            = COLOR(0xff8700ff);
-static const float urgentcolor[]           = COLOR(0xff0000ff);
 /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
 static const float fullscreen_bg[]         = {0.0f, 0.0f, 0.0f, 1.0f}; /* You can also use glsl colors */
+static uint32_t colors[][3]                = {
+	/*               fg          bg          border    */
+	[SchemeNorm] = { 0xffffffff, 0x000000ff, 0x808080ff },
+	[SchemeSel]  = { 0x000000ff, 0xff8700ff, 0xff8700ff },
+	[SchemeUrg]  = { 0,          0,          0xff0000ff },
+};
 
-/* tagging - TAGCOUNT must be no greater than 31 */
-#define TAGCOUNT (9)
+/* tagging */
+static char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
 /* logging */
 static int log_level = WLR_ERROR;
@@ -84,13 +90,14 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 
 /* commands */
 static const char *termcmd[] = { "foot", NULL };
-static const char *menucmd[] = { "wmenu-run", NULL };
+static const char *menucmd[] = { "wmenu-run", "-f", "Terminus Bold 10", "-N", "#000000", "-n", "#ffffff", "-S", "#ffffff", "-s", "#000000", NULL };
 
 static const Key keys[] = {
 	/* Note that Shift changes certain key codes: 2 -> at, etc. */
 	/* modifier                  key                  function          argument */
 	{ MODKEY,                    XKB_KEY_p,           spawn,            {.v = menucmd} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,      spawn,            {.v = termcmd} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_B,          togglebar,        {0} },
 	{ MODKEY,                    XKB_KEY_j,           focusstack,       {.i = +1} },
 	{ MODKEY,                    XKB_KEY_k,           focusstack,       {.i = -1} },
 	{ MODKEY,                    XKB_KEY_i,           incnmaster,       {.i = +1} },
@@ -124,8 +131,8 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Q,           quit,             {0} },
 
 	/* media */
-	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_N, spawn, SHCMD("notify-send -t 5000 \"$(playerctl metadata --format '{{artist}} - {{title}}')\"") },
-	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_D, spawn, SHCMD("f=$(playerctl metadata xesam:url | sed 's|file://||'); playerctl next; sleep 0.3; echo \"$(date -Is) $f\" >> ~/.local/share/deleted-songs.log && rm \"$f\" && notify-send 'Deleted' \"$(basename \"$f\")\"") },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_N, spawn, SHCMD("media-ctl info") },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_D, spawn, SHCMD("media-ctl delete") },
 	{ MODKEY, XKB_KEY_n, spawn, SHCMD("media-ctl play-pause") },
 	{ MODKEY, XKB_KEY_y, spawn, SHCMD("media-ctl next") },
 	{ MODKEY, XKB_KEY_b, spawn, SHCMD("media-ctl previous") },
@@ -136,9 +143,12 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_s, spawn, SHCMD("grim -g \"$(slurp)\" - | wl-copy") },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_S, spawn, SHCMD("grim - | wl-copy") },
 
+	/* system mic mute toggle */
+	{ MODKEY, XKB_KEY_g, spawn, SHCMD("mic-toggle") },
+
 	/* lock & logout */
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_L, spawn, SHCMD("swaylock -f -c 000000") },
-	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_E, spawn, SHCMD("echo -e 'yes\\nno' | wmenu -p 'logout?' | grep -q yes && killall dwl") },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_E, spawn, SHCMD("echo -e 'yes\\nno' | wmenu -f 'Terminus Bold 10' -N '#000000' -n '#ffffff' -S '#ffffff' -s '#000000' -p 'logout?' | grep -q yes && killall dwl") },
 
 	/* VT switching */
 #define CHVT(n) { WLR_MODIFIER_CTRL|WLR_MODIFIER_ALT,XKB_KEY_XF86Switch_VT_##n, chvt, {.ui = (n)} }
@@ -147,7 +157,15 @@ static const Key keys[] = {
 };
 
 static const Button buttons[] = {
-	{ MODKEY, BTN_LEFT,   moveresize,     {.ui = CurMove} },
-	{ MODKEY, BTN_MIDDLE, togglefloating, {0} },
-	{ MODKEY, BTN_RIGHT,  moveresize,     {.ui = CurResize} },
+	{ ClkLtSymbol, 0,      BTN_LEFT,   setlayout,      {.v = &layouts[0]} },
+	{ ClkLtSymbol, 0,      BTN_RIGHT,  setlayout,      {.v = &layouts[2]} },
+	{ ClkTitle,    0,      BTN_MIDDLE, zoom,           {0} },
+	{ ClkStatus,   0,      BTN_MIDDLE, spawn,          {.v = termcmd} },
+	{ ClkClient,   MODKEY, BTN_LEFT,   moveresize,     {.ui = CurMove} },
+	{ ClkClient,   MODKEY, BTN_MIDDLE, togglefloating, {0} },
+	{ ClkClient,   MODKEY, BTN_RIGHT,  moveresize,     {.ui = CurResize} },
+	{ ClkTagBar,   0,      BTN_LEFT,   view,           {0} },
+	{ ClkTagBar,   0,      BTN_RIGHT,  toggleview,     {0} },
+	{ ClkTagBar,   MODKEY, BTN_LEFT,   tag,            {0} },
+	{ ClkTagBar,   MODKEY, BTN_RIGHT,  toggletag,      {0} },
 };
